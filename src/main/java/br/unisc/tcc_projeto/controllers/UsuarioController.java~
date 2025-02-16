@@ -1,0 +1,129 @@
+package br.unisc.tcc_projeto.controllers;
+
+import br.unisc.tcc_projeto.DTO.RegisterRequest;
+import br.unisc.tcc_projeto.entidades.Usuario;
+import br.unisc.tcc_projeto.repositories.UsuarioRepository;
+import br.unisc.tcc_projeto.services.AuthenticationService;
+import br.unisc.tcc_projeto.services.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/usuarios")
+public class UsuarioController {
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    /**
+     * Endpoint para listar usuários por tipo (CLIENTE, FUNCIONARIO, ADMINISTRADOR).
+     *
+     * @param tipoDeUsuario Tipo de usuário a ser listado
+     * @return Lista de usuários do tipo especificado
+     */
+    @GetMapping("/listar/{tipo}")
+    public ResponseEntity<List<Usuario>> listarUsuariosPorTipo(@PathVariable("tipo") String tipoDeUsuario) {
+        List<Usuario> usuarios = usuarioService.listarUsuarioPorTipo(tipoDeUsuario);
+        return ResponseEntity.ok(usuarios);
+    }
+
+    @GetMapping("/listar/todos")
+    public ResponseEntity<List<Usuario>> listarTodosUsuarios() {
+        List<Usuario> usuarios = usuarioService.listarTodosUsuarios();
+        return ResponseEntity.ok(usuarios);
+    }
+
+    @GetMapping("/agendamento/funcionarios")
+    public ResponseEntity<List<Map<String, Object>>> listarFuncionariosParaAgendamento() {
+        List<Usuario> funcionarios = usuarioRepository.findByTipoDeUsuario("FUNCIONARIO");
+
+        List<Map<String, Object>> resultado = funcionarios.stream()
+                .map(func -> {
+                    Map<String, Object> funcionarioMap = new HashMap<>();
+                    funcionarioMap.put("id", func.getId());
+                    funcionarioMap.put("nome", func.getNome());
+                    return funcionarioMap;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resultado);
+    }
+
+
+
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping("/cadastrar-cliente")
+    public ResponseEntity<?> cadastrarCliente(@RequestBody RegisterRequest request) {
+        return cadastrarUsuario(request, "CLIENTE");
+    }
+
+    @PostMapping("/cadastrar-funcionario")
+    public ResponseEntity<?> cadastrarFuncionario(@RequestBody RegisterRequest request) {
+        return cadastrarUsuario(request, "FUNCIONARIO");
+    }
+
+    @PostMapping("/cadastrar-administrador")
+    public ResponseEntity<?> cadastrarAdministrador(@RequestBody RegisterRequest request) {
+        return cadastrarUsuario(request, "ADMINISTRADOR");
+    }
+
+    private ResponseEntity<?> cadastrarUsuario(RegisterRequest request, String tipo) {
+        try {
+            System.out.println("Recebendo requisição: " + request);
+            request.setTipoDeUsuario(tipo);
+            String response = authenticationService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
+
+    @PutMapping("/editar/{id}")
+    public ResponseEntity<?> editarUsuario(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado) {
+        Optional<Usuario> usuarioOptional = usuarioService.buscarPorId(id);
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+
+        Usuario usuario = usuarioOptional.get();
+        usuario.setNome(usuarioAtualizado.getNome());
+        usuario.setEmail(usuarioAtualizado.getEmail());
+        usuario.setTelefone(usuarioAtualizado.getTelefone());
+        usuario.setTipoDeUsuario(usuarioAtualizado.getTipoDeUsuario());
+
+        usuarioService.salvarUsuario(usuario);
+
+        return ResponseEntity.ok("Usuário atualizado com sucesso!");
+    }
+
+    @DeleteMapping("/excluir/{id}")
+    public ResponseEntity<?> excluirUsuario(@PathVariable Long id) {
+        Optional<Usuario> usuarioOptional = usuarioService.buscarPorId(id);
+
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+
+        usuarioService.excluirUsuario(id);
+
+        return ResponseEntity.ok("Usuário excluído com sucesso!");
+    }
+
+
+}

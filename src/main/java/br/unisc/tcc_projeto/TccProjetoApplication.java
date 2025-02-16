@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class TccProjetoApplication {
 
+
 	public static void main(String[] args) {
 		SpringApplication.run(TccProjetoApplication.class, args);
 	}

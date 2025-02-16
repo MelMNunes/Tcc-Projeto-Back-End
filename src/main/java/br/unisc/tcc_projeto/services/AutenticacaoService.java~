@@ -1,0 +1,30 @@
+package br.unisc.tcc_projeto.services;
+
+import br.unisc.tcc_projeto.entidades.Usuario;
+import br.unisc.tcc_projeto.repositories.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AutenticacaoService {
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public Usuario autenticarUsuario(String login, String senha) {
+        // Buscar usuário por e-mail, CPF ou telefone
+        Usuario usuario = usuarioRepository.findByEmailOrCpfOrTelefone(login, login, login)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
+
+        // Verificar se a senha corresponde
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new RuntimeException("Senha inválida!");
+        }
+
+        return usuario;
+    }
+}
