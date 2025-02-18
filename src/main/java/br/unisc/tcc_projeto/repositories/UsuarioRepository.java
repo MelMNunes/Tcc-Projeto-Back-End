@@ -1,13 +1,15 @@
 package br.unisc.tcc_projeto.repositories;
 
+import br.unisc.tcc_projeto.entidades.Servico;
 import br.unisc.tcc_projeto.entidades.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-
+@Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmailOrCpfOrTelefone(String email, String cpf, String telefone); //Busca o usuário pelo email ou cpf ou telefone
     boolean existsByEmail(String email);

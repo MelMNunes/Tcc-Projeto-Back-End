@@ -46,7 +46,6 @@ public class AuthenticationService {
         String token = JwtUtil.generateJwtToken(usuario);
 
         return new AuthResponse(token, usuario.getTipoDeUsuario(), usuario.getNome(), usuario.getId());
-
     }
 
     public String register(RegisterRequest request) {

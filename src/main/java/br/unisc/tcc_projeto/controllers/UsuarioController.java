@@ -122,5 +122,11 @@ public class UsuarioController {
         return ResponseEntity.ok("Usuário excluído com sucesso!");
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscarUsuarioPorId(@PathVariable Long id) {
+        Usuario usuario = usuarioService.buscarUsuarioPorId(id);
+        return usuario != null ? ResponseEntity.ok(usuario) : ResponseEntity.notFound().build();
+    }
+
 
 }
