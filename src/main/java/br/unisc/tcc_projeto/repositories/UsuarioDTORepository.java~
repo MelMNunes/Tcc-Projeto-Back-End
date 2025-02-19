@@ -1,0 +1,10 @@
+package br.unisc.tcc_projeto.repositories;
+
+import br.unisc.tcc_projeto.DTO.UsuarioDTO;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface UsuarioDTORepository {
+    List<UsuarioDTO> findAll();
+}

@@ -60,11 +60,9 @@ public class AgendamentoService {
             return new AgendamentoDTO(
                     agendamento.getId(),
                     agendamento.getDataHora(),
-                    cliente.getNome(),   // Nome do cliente
                     funcionario.getNome(), // Nome do funcionário
-                    servico.getNome()    // Nome do serviço
+                    servico.getNome() // Nome do serviço
             );
-
         }).collect(Collectors.toList());
     }
 

@@ -1,5 +1,6 @@
 package br.unisc.tcc_projeto.controllers;
 
+import br.unisc.tcc_projeto.DTO.AgendamentoDTO;
 import br.unisc.tcc_projeto.entidades.Agendamento;
 import br.unisc.tcc_projeto.services.AgendamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/agendamentos")
 public class AgendamentoController {
@@ -31,10 +33,18 @@ public class AgendamentoController {
 
     // Endpoint para buscar agendamentos por cliente
     @GetMapping("/clientes/{clienteId}")
-    public ResponseEntity<List<Agendamento>> buscarAgendamentosPorCliente(@PathVariable Long clienteId) {
-        List<Agendamento> agendamentos = agendamentoService.buscarAgendamentosPorCliente(clienteId);
+    public ResponseEntity<List<AgendamentoDTO>> buscarAgendamentosPorCliente(@PathVariable Long clienteId) {
+        List<AgendamentoDTO> agendamentos = agendamentoService.buscarAgendamentosPorCliente(clienteId);
         return ResponseEntity.ok(agendamentos);
     }
+
+    // Endpoint para buscar agendamentos por funcionario
+    @GetMapping("/funcionarios/{funcionarioId}")
+    public ResponseEntity<List<AgendamentoDTO>> buscarAgendamentosPorFuncionario(@PathVariable Long funcionarioId) {
+        List<AgendamentoDTO> agendamentos = agendamentoService.buscarAgendamentosPorFuncionario(funcionarioId);
+        return ResponseEntity.ok(agendamentos);
+    }
+
 
     // Endpoint para buscar um agendamento por ID
     @GetMapping("/{id}")

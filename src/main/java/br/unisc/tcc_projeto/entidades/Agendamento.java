@@ -1,5 +1,6 @@
 package br.unisc.tcc_projeto.entidades;
 
+import br.unisc.tcc_projeto.DTO.AuthResponse;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -120,4 +121,5 @@ public class Agendamento {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
 }

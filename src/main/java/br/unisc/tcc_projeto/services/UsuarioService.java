@@ -3,7 +3,6 @@ package br.unisc.tcc_projeto.services;
 import br.unisc.tcc_projeto.entidades.Usuario;
 import br.unisc.tcc_projeto.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +27,8 @@ public class UsuarioService {
         return usuarioRepository.findByEmailOrCpfOrTelefone(login, login, login).isPresent();
     }
 
-    public List<Usuario> listarTodosUsuarios() {
+
+    public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
 

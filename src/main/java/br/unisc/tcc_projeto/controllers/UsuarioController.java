@@ -29,12 +29,6 @@ public class UsuarioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    /**
-     * Endpoint para listar usuários por tipo (CLIENTE, FUNCIONARIO, ADMINISTRADOR).
-     *
-     * @param tipoDeUsuario Tipo de usuário a ser listado
-     * @return Lista de usuários do tipo especificado
-     */
     @GetMapping("/listar/{tipo}")
     public ResponseEntity<List<Usuario>> listarUsuariosPorTipo(@PathVariable("tipo") String tipoDeUsuario) {
         List<Usuario> usuarios = usuarioService.listarUsuarioPorTipo(tipoDeUsuario);
@@ -42,8 +36,8 @@ public class UsuarioController {
     }
 
     @GetMapping("/listar/todos")
-    public ResponseEntity<List<Usuario>> listarTodosUsuarios() {
-        List<Usuario> usuarios = usuarioService.listarTodosUsuarios();
+    public ResponseEntity<List<Usuario>> listarTodos() {
+        List<Usuario> usuarios = usuarioService.listarTodos();
         return ResponseEntity.ok(usuarios);
     }
 
