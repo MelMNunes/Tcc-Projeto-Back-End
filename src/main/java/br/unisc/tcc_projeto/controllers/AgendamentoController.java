@@ -4,6 +4,7 @@ import br.unisc.tcc_projeto.DTO.AgendamentoDTO;
 import br.unisc.tcc_projeto.entidades.Agendamento;
 import br.unisc.tcc_projeto.services.AgendamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,16 +56,20 @@ public class AgendamentoController {
     }
 
     // Endpoint para atualizar um agendamento
-    @PutMapping("/{id}")
+    @PutMapping("/{agendamentoId}")
     public ResponseEntity<Agendamento> atualizarAgendamento(@PathVariable Long id, @RequestBody Agendamento agendamento) {
         Agendamento agendamentoAtualizado = agendamentoService.atualizarAgendamento(id, agendamento);
         return ResponseEntity.ok(agendamentoAtualizado);
     }
 
     // Endpoint para cancelar um agendamento
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelarAgendamento(@PathVariable Long id) {
-        agendamentoService.cancelarAgendamento(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{agendamentoId}")
+    public ResponseEntity<Void> cancelarAgendamento(@PathVariable Long agendamentoId) {
+        try {
+            agendamentoService.cancelarAgendamento(agendamentoId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
