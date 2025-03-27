@@ -1,6 +1,7 @@
 package br.unisc.tcc_projeto.services;
 
 import br.unisc.tcc_projeto.DTO.AgendamentoDTO;
+import br.unisc.tcc_projeto.DTO.ConsultaDTO;
 import br.unisc.tcc_projeto.entidades.Agendamento;
 import br.unisc.tcc_projeto.entidades.Servico;
 import br.unisc.tcc_projeto.entidades.Usuario;
@@ -122,5 +123,24 @@ public class AgendamentoService {
             throw new RuntimeException("Agendamento não encontrado");
         }
         agendamentoRepository.deleteById(id);
+    }
+
+    // Método para desassociar agendamentos de um usuário pelo ID do usuário
+    public void desassociarAgendamentosPorUsuarioId(Long usuarioId) {
+        // Primeiro, busque os agendamentos relacionados ao cliente
+        List<Agendamento> agendamentosComoCliente = agendamentoRepository.findByClienteId(usuarioId);
+        for (Agendamento agendamento : agendamentosComoCliente) {
+            agendamentoRepository.delete(agendamento); // Exclui ou desassocia
+        }
+
+        // Depois, busque os agendamentos relacionados ao funcionário
+        List<Agendamento> agendamentosComoFuncionario = agendamentoRepository.findByFuncionarioId(usuarioId);
+        for (Agendamento agendamento : agendamentosComoFuncionario) {
+            agendamentoRepository.delete(agendamento); // Exclui ou desassocia
+        }
+    }
+
+    public List<Agendamento> getHistoricoByFuncionarioId(Long funcionarioId) {
+        return agendamentoRepository.findHistoricoByFuncionarioId(funcionarioId);
     }
 }

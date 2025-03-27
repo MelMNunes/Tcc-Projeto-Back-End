@@ -75,8 +75,8 @@ public class AgendamentoController {
     }
 
     @GetMapping("/historico/{funcionarioId}")
-    public ResponseEntity<List<Agendamento>> getHistorico(@PathVariable Long funcionarioId) {
-        List<Agendamento> historico = agendamentoService.getHistoricoByFuncionarioId(funcionarioId);
+    public ResponseEntity<List<AgendamentoDTO>> getHistorico(@PathVariable Long funcionarioId) {
+        List<AgendamentoDTO> historico = agendamentoService.getHistoricoByFuncionarioId(funcionarioId);
         return ResponseEntity.ok(historico);
     }
 

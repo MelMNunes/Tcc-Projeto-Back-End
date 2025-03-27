@@ -117,7 +117,7 @@ public class UsuarioController {
         }
 
         try {
-            // Desassocia agendamentos antes de excluir o usuário
+            // Exemplo: desassociar agendamentos antes de excluir o usuário
             agendamentoService.desassociarAgendamentosPorUsuarioId(id);
 
             usuarioService.excluirUsuario(id); // Exclui o usuário diretamente
