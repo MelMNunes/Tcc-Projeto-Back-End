@@ -8,13 +8,17 @@ public class AgendamentoDTO {
     private String clienteNome;
     private String funcionarioNome;
     private String servicoNome;
+    private String descricao;
+    private String status;
 
-    public AgendamentoDTO(Long id, LocalDateTime dataHora, String clienteNome, String funcionarioNome, String servicoNome) {
+    public AgendamentoDTO(Long id, LocalDateTime dataHora, String clienteNome, String funcionarioNome, String servicoNome, String descricao, String status) {
         this.id = id;
         this.dataHora = dataHora;
         this.clienteNome = clienteNome;
         this.funcionarioNome = funcionarioNome;
         this.servicoNome = servicoNome;
+        this.descricao = descricao;
+        this.status = status;
     }
 
     public Long getId() {
@@ -56,5 +60,20 @@ public class AgendamentoDTO {
     public void setServicoNome(String servicoNome) {
         this.servicoNome = servicoNome;
     }
-}
 
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}

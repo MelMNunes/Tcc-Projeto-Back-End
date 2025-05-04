@@ -32,18 +32,16 @@ public class AutenticacaoController {
     // Cadastro Endpoint
     @PostMapping("/cadastrar")
     public ResponseEntity<?> cadastrar(@RequestBody RegisterRequest request) {
-
         try {
-            // Registra o usuário como CLIENTE
+            // Garante que o tipo de usuário seja CLIENTE antes de registrar
             request.setTipoDeUsuario("CLIENTE");
 
-            //Registra o usuário
+            // Registra o usuário
             String response = authenticationService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-
         }
     }
+
 }

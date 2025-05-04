@@ -189,12 +189,6 @@ public class AgendamentoService {
     }
 
 
-    public List<AgendamentoDTO> buscarAgendamentosPorFuncionarioEStatus(Long funcionarioId, String status) {
-        // Reaproveita o método já existente
-        return buscarAgendamentosPorFuncionario(funcionarioId).stream()
-                .filter(dto -> dto.getStatus().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
-    }
 
 
 }

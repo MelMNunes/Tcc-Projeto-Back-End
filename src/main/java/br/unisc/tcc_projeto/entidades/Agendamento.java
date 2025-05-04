@@ -1,7 +1,7 @@
 package br.unisc.tcc_projeto.entidades;
 
-import br.unisc.tcc_projeto.DTO.AuthResponse;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity

@@ -46,6 +46,7 @@ public class AuthenticationService {
         String token = JwtUtil.generateJwtToken(usuario);
 
         return new AuthResponse(token, usuario.getTipoDeUsuario(), usuario.getNome(), usuario.getId());
+
     }
 
     public String register(RegisterRequest request) {
@@ -58,6 +59,11 @@ public class AuthenticationService {
         }
         if (usuarioRepository.existsByTelefone(request.getTelefone())) {
             throw new IllegalArgumentException("Telefone já cadastrado!");
+        }
+
+        // Validação da senha
+        if (!isPasswordStrong(request.getSenha())) {
+            throw new IllegalArgumentException("A senha não é forte o suficiente. Deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, letras minúsculas e números.");
         }
 
         // Cria e popula o novo usuário como CLIENTE

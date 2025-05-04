@@ -16,4 +16,9 @@ public class ServicoService {
     public List<Servico> listarServicos() {
         return servicoRepository.findAll();
     }
+
+    public Servico buscarPorId(Long id) {
+        return servicoRepository.findById(id).orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+    }
+
 }

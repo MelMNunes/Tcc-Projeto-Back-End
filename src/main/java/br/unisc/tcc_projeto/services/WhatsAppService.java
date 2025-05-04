@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 public class WhatsAppService {
 
     private static final String WALI_CHAT_URL = "https://api.wali.chat/v1/messages";
-    private static final String TOKEN = "0f2d95328f00d15bfadf10c0a45637cc44887b111f9af7fe2f9004ebd5b3c7d8f2c4359adf72b609"; // Substitua pelo seu token
+    private static final String TOKEN = "6b62cd32d432ada74b7fc42d35e975e40fb0eeb847d7dda0172d36564018cfa7f89cffa98f3647bd"; // Substitua pelo seu token
 
     @Autowired
     private RestTemplate restTemplate;

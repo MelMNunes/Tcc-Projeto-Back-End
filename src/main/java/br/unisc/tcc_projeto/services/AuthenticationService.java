@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Pattern;
+
 @Service
 public class AuthenticationService {
 
@@ -61,6 +63,11 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Telefone já cadastrado!");
         }
 
+        // Validação da senha
+        if (!isPasswordStrong(request.getSenha())) {
+            throw new IllegalArgumentException("A senha não é forte o suficiente. Deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, letras minúsculas e números.");
+        }
+
         // Cria e popula o novo usuário como CLIENTE
         Usuario usuario = new Usuario();
         usuario.setNome(request.getNome());
@@ -81,6 +88,21 @@ public class AuthenticationService {
         }
 
         return "Cadastro realizado com sucesso!";
+    }
+
+    // Método para verificar se a senha é forte
+    private boolean isPasswordStrong(String senha) {
+        // Verifica se a senha tem pelo menos 8 caracteres
+        if (senha.length() < 8) {
+            return false;
+        }
+
+        // Verifica se a senha contém pelo menos uma letra maiúscula, uma letra minúscula e um número
+        boolean hasUpperCase = Pattern.compile("[A-Z]").matcher(senha).find();
+        boolean hasLowerCase = Pattern.compile("[a-z]").matcher(senha).find();
+        boolean hasDigit = Pattern.compile("[0-9]").matcher(senha).find();
+
+        return hasUpperCase && hasLowerCase && hasDigit;
     }
 
 
