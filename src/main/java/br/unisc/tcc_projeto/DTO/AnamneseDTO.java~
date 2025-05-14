@@ -1,14 +1,12 @@
 package br.unisc.tcc_projeto.DTO;
 
-import java.time.LocalDate; // Para dataRegistro se for LocalDate
-// import java.time.LocalDateTime; // Se dataRegistro for LocalDateTime
+import java.time.LocalDate;
 
 public class AnamneseDTO {
     private Long id;
     private Long agendamentoId;
     private Long clienteId;
-    private String clienteNome; // NOVO CAMPO
-    private String dataRegistro; // Alterado para String (formato YYYY-MM-DD)
+    private LocalDate dataRegistro;
     private Integer idade;
     private String genero;
     private String queixaPrincipal;
@@ -24,10 +22,10 @@ public class AnamneseDTO {
     private String materiais;
     private String historicoFamiliar;
     private String historicoFamiliarEspecificar;
-    private String habitos; // String JSON
-    private String saudePes; // String JSON
-    private String avaliacao; // String JSON
-    private String foto; // String Base64 (sem prefixo "data:image/jpeg;base64,")
+    private String habitos;
+    private String saudePes;
+    private String avaliacao;
+    private byte[] foto;
 
     public AnamneseDTO() {}
 
@@ -35,8 +33,7 @@ public class AnamneseDTO {
             Long id,
             Long agendamentoId,
             Long clienteId,
-            String clienteNome, // Adicionado
-            String dataRegistro, // Alterado para String
+            LocalDate dataRegistro,
             Integer idade,
             String genero,
             String queixaPrincipal,
@@ -55,12 +52,11 @@ public class AnamneseDTO {
             String habitos,
             String saudePes,
             String avaliacao,
-            String foto // Alterado para String
+            byte[] foto
     ) {
         this.id = id;
         this.agendamentoId = agendamentoId;
         this.clienteId = clienteId;
-        this.clienteNome = clienteNome;
         this.dataRegistro = dataRegistro;
         this.idade = idade;
         this.genero = genero;
@@ -83,7 +79,7 @@ public class AnamneseDTO {
         this.foto = foto;
     }
 
-    // Getters e Setters
+    // Getters e setters
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -94,11 +90,8 @@ public class AnamneseDTO {
     public Long getClienteId() { return clienteId; }
     public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
 
-    public String getClienteNome() { return clienteNome; }
-    public void setClienteNome(String clienteNome) { this.clienteNome = clienteNome; }
-
-    public String getDataRegistro() { return dataRegistro; }
-    public void setDataRegistro(String dataRegistro) { this.dataRegistro = dataRegistro; }
+    public LocalDate getDataRegistro() { return dataRegistro; }
+    public void setDataRegistro(LocalDate dataRegistro) { this.dataRegistro = dataRegistro; }
 
     public Integer getIdade() { return idade; }
     public void setIdade(Integer idade) { this.idade = idade; }
@@ -145,15 +138,20 @@ public class AnamneseDTO {
     public String getHistoricoFamiliarEspecificar() { return historicoFamiliarEspecificar; }
     public void setHistoricoFamiliarEspecificar(String historicoFamiliarEspecificar) { this.historicoFamiliarEspecificar = historicoFamiliarEspecificar; }
 
-    public String getHabitos() { return habitos; } // String JSON
+    public String getHabitos() { return habitos; }
     public void setHabitos(String habitos) { this.habitos = habitos; }
 
-    public String getSaudePes() { return saudePes; } // String JSON
+    public String getSaudePes() { return saudePes; }
     public void setSaudePes(String saudePes) { this.saudePes = saudePes; }
 
-    public String getAvaliacao() { return avaliacao; } // String JSON
+    public String getAvaliacao() { return avaliacao; }
     public void setAvaliacao(String avaliacao) { this.avaliacao = avaliacao; }
 
-    public String getFoto() { return foto; } // String Base64
-    public void setFoto(String foto) { this.foto = foto; }
+    public byte[] getFoto() {
+        return foto;
+    }
+
+    public void setFoto(byte[] foto) {
+        this.foto = foto;
+    }
 }

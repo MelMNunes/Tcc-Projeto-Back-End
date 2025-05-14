@@ -4,10 +4,12 @@ import br.unisc.tcc_projeto.DTO.AgendamentoDTO;
 import br.unisc.tcc_projeto.entidades.Agendamento;
 import br.unisc.tcc_projeto.services.AgendamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,6 +131,19 @@ public class AgendamentoController {
         }
     }
 
+    @GetMapping("/funcionarios/{id}/dia/{data}")
+    public ResponseEntity<List<AgendamentoDTO>> getPorFuncionarioEDia(
+            @PathVariable Long id,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        List<AgendamentoDTO> agendamentos = agendamentoService.buscarPorFuncionarioEData(id, data);
+        return ResponseEntity.ok(agendamentos);
+    }
 
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<AgendamentoDTO>> buscarPorStatus(@PathVariable String status) {
+        // O serviço agora retorna List<AgendamentoDTO> com os nomes
+        List<AgendamentoDTO> agendamentos = agendamentoService.listarAgendamentosPorStatusComNomes(status);
+        return ResponseEntity.ok(agendamentos);
+    }
 
 }

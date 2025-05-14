@@ -137,12 +137,4 @@ public class AgendamentoDTO {
     public void setStatus(String status) {
         this.status = status;
     }
-
-    public Double getPrecoServico() {
-        return precoServico;
-    }
-
-    public void setPrecoServico(Double precoServico) {
-        this.precoServico = precoServico;
-    }
 }

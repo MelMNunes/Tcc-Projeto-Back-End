@@ -255,12 +255,4 @@ public class Anamnese {
     public void setAvaliacao(String avaliacao) {
         this.avaliacao = avaliacao;
     }
-
-    public byte[] getFoto() {
-        return foto;
-    }
-
-    public void setFoto(byte[] foto) {
-        this.foto = foto;
-    }
 }

@@ -5,20 +5,34 @@ public class AuthResponse {
     private String tipoDeUsuario;
     private String nome;
     private Long id;
+    private String cpf;       // Novo campo
+    private String telefone;  // Novo campo
 
-    public AuthResponse(String token, String tipoDeUsuario, String nome, Long id) {
+    // Construtor atualizado
+    public AuthResponse(String token, String tipoDeUsuario, String nome, Long id, String cpf, String telefone) {
         this.token = token;
         this.tipoDeUsuario = tipoDeUsuario;
         this.nome = nome;
         this.id = id;
+        this.cpf = cpf;
+        this.telefone = telefone;
     }
 
+    // Getters (e Setters, se necessário)
     public String getToken() {
         return token;
     }
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getTipoDeUsuario() {
+        return tipoDeUsuario;
+    }
+
+    public void setTipoDeUsuario(String tipoDeUsuario) {
+        this.tipoDeUsuario = tipoDeUsuario;
     }
 
     public String getNome() {
@@ -37,11 +51,19 @@ public class AuthResponse {
         this.id = id;
     }
 
-    public String getTipoDeUsuario() {
-        return tipoDeUsuario;
+    public String getCpf() {
+        return cpf;
     }
 
-    public void setTipoDeUsuario(String tipoDeUsuario) {
-        this.tipoDeUsuario = tipoDeUsuario;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 }

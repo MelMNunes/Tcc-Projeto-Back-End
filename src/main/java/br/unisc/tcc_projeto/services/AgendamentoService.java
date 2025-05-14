@@ -9,10 +9,12 @@ import br.unisc.tcc_projeto.repositories.ServicoRepository;
 import br.unisc.tcc_projeto.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Importante para operações de escrita
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,173 +30,301 @@ public class AgendamentoService {
     @Autowired
     private ServicoRepository servicoRepository;
 
+    // Se ServicoService for usado para buscar detalhes do serviço como duração,
+    // certifique-se de que ele existe e está injetado.
+    // Se buscarPorId já existe no ServicoRepository, pode não ser necessário.
     @Autowired
     private ServicoService servicoService;
 
+
     // Método para criar um novo agendamento
-    public Agendamento criarAgendamento(Agendamento agendamento) {
+    // Adicionado Transactional para garantir atomicidade
+    @Transactional
+    public Agendamento salvarAgendamento(Agendamento agendamento) {
+        // Validação de conflito antes de salvar
+        // A lógica de existeConflito pode precisar do ID do agendamento se for uma edição,
+        // para não conflitar consigo mesmo.
+        if (agendamento.getId() == null && existeConflito(agendamento.getDataHora(), agendamento.getFuncionarioId(), agendamento.getServicoId(), null)) {
+            throw new RuntimeException("Conflito de horário: já existe um agendamento para este funcionário neste horário.");
+        } else if (agendamento.getId() != null && existeConflito(agendamento.getDataHora(), agendamento.getFuncionarioId(), agendamento.getServicoId(), agendamento.getId())) {
+            throw new RuntimeException("Conflito de horário: já existe outro agendamento para este funcionário neste horário.");
+        }
         return agendamentoRepository.save(agendamento);
     }
 
-    // Método para buscar agendamentos por cliente
+    // Método para buscar agendamentos por cliente, retornando DTO com IDs
     public List<AgendamentoDTO> buscarAgendamentosPorCliente(Long clienteId) {
-        // Verifica se o ID pertence a um usuário do tipo CLIENTE
         Usuario cliente = usuarioRepository.findById(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + clienteId));
 
-        if (!"CLIENTE".equals(cliente.getTipoDeUsuario())) {
-            throw new RuntimeException("Usuário não é um cliente válido");
+        if (!"CLIENTE".equalsIgnoreCase(cliente.getTipoDeUsuario())) { // Usar equalsIgnoreCase para robustez
+            throw new RuntimeException("Usuário com ID " + clienteId + " não é um cliente válido.");
         }
 
-        // Busca os agendamentos
-        return agendamentoRepository.findByClienteId(clienteId).stream().map(agendamento -> {
-            // Busca o nome do funcionário
+        List<Agendamento> agendamentos = agendamentoRepository.findByClienteId(clienteId);
+        return agendamentos.stream().map(agendamento -> {
             Usuario funcionario = usuarioRepository.findById(agendamento.getFuncionarioId())
-                    .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
-
-            // Busca o nome do serviço
+                    .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com ID: " + agendamento.getFuncionarioId() + " para o agendamento ID: " + agendamento.getId()));
             Servico servico = servicoRepository.findById(agendamento.getServicoId())
-                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + agendamento.getServicoId() + " para o agendamento ID: " + agendamento.getId()));
 
             return new AgendamentoDTO(
                     agendamento.getId(),
                     agendamento.getDataHora(),
-                    cliente.getNome(),   // Nome do cliente
-                    funcionario.getNome(), // Nome do funcionário
-                    servico.getNome(),    // Nome do serviço
+                    cliente.getNome(),
+                    agendamento.getClienteId(),
+                    funcionario.getNome(),
+                    agendamento.getFuncionarioId(),
+                    servico.getNome(),
+                    agendamento.getServicoId(),
                     agendamento.getDescricao(),
-                    agendamento.getStatus());
-
-
+                    agendamento.getStatus(),
+                    servico != null ? servico.getPreco() : 0.0
+            );
         }).collect(Collectors.toList());
     }
 
-    // Método para buscar agendamentos por funcionário
+    // Método para buscar agendamentos por funcionário, retornando DTO com IDs
     public List<AgendamentoDTO> buscarAgendamentosPorFuncionario(Long funcionarioId) {
-        // Verifica se o ID pertence a um usuário do tipo FUNCIONARIO
         Usuario funcionario = usuarioRepository.findById(funcionarioId)
-                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com ID: " + funcionarioId));
 
-        if (!"FUNCIONARIO".equals(funcionario.getTipoDeUsuario())) {
-            throw new RuntimeException("Usuário não é um funcionário válido");
+        if (!"FUNCIONARIO".equalsIgnoreCase(funcionario.getTipoDeUsuario())) {
+            throw new RuntimeException("Usuário com ID " + funcionarioId + " não é um funcionário válido.");
         }
 
-        // Busca os agendamentos relacionados ao funcionário
-        return agendamentoRepository.findByFuncionarioId(funcionarioId).stream().map(agendamento -> {
-            // Busca o nome do cliente
+        List<Agendamento> agendamentos = agendamentoRepository.findByFuncionarioId(funcionarioId);
+        return agendamentos.stream().map(agendamento -> {
             Usuario cliente = usuarioRepository.findById(agendamento.getClienteId())
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-
-            // Busca o nome do serviço
+                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + agendamento.getClienteId() + " para o agendamento ID: " + agendamento.getId()));
             Servico servico = servicoRepository.findById(agendamento.getServicoId())
-                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + agendamento.getServicoId() + " para o agendamento ID: " + agendamento.getId()));
 
             return new AgendamentoDTO(
                     agendamento.getId(),
                     agendamento.getDataHora(),
-                    cliente.getNome(),   // Nome do cliente
-                    funcionario.getNome(), // Nome do funcionário
-                    servico.getNome(), // Nome do serviço
-                    agendamento.getDescricao(), // Descricao
-                    agendamento.getStatus() // Status
+                    cliente.getNome(),
+                    agendamento.getClienteId(),
+                    funcionario.getNome(),
+                    agendamento.getFuncionarioId(),
+                    servico.getNome(),
+                    agendamento.getServicoId(),
+                    agendamento.getDescricao(),
+                    agendamento.getStatus(),
+                    servico != null ? servico.getPreco() : 0.0
             );
-
         }).collect(Collectors.toList());
     }
 
 
-    // Método para buscar um agendamento por ID
+    // Método para buscar um agendamento por ID (retorna a entidade)
     public Optional<Agendamento> buscarAgendamentoPorId(Long id) {
         return agendamentoRepository.findById(id);
     }
 
     // Método para atualizar um agendamento
+    // Adicionado Transactional
+    @Transactional
     public Agendamento atualizarAgendamento(Long id, Agendamento agendamentoAtualizado) {
-        // Verifica se o agendamento existe
-        if (!agendamentoRepository.existsById(id)) {
-            throw new RuntimeException("Agendamento não encontrado");
+        Agendamento agendamentoExistente = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado com ID: " + id));
+
+        // Validação de conflito, ignorando o próprio agendamento que está sendo editado
+        if (existeConflito(agendamentoAtualizado.getDataHora(), agendamentoAtualizado.getFuncionarioId(), agendamentoAtualizado.getServicoId(), id)) {
+            throw new RuntimeException("Conflito de horário: já existe outro agendamento para este funcionário neste horário.");
         }
-        agendamentoAtualizado.setId(id); // Define o ID do agendamento a ser atualizado
-        return agendamentoRepository.save(agendamentoAtualizado);
+
+        // Atualiza os campos do agendamento existente com os dados recebidos
+        agendamentoExistente.setClienteId(agendamentoAtualizado.getClienteId());
+        agendamentoExistente.setFuncionarioId(agendamentoAtualizado.getFuncionarioId());
+        agendamentoExistente.setServicoId(agendamentoAtualizado.getServicoId());
+        agendamentoExistente.setDataHora(agendamentoAtualizado.getDataHora());
+        agendamentoExistente.setDescricao(agendamentoAtualizado.getDescricao());
+        agendamentoExistente.setStatus(agendamentoAtualizado.getStatus());
+        // Adicione outros campos que podem ser atualizados
+
+        return agendamentoRepository.save(agendamentoExistente);
     }
 
-    // Método para cancelar um agendamento (opcional)
+    // Método para cancelar um agendamento (exclusão física)
+    // Adicionado Transactional
+    @Transactional
     public void cancelarAgendamento(Long id) {
         if (!agendamentoRepository.existsById(id)) {
-            throw new RuntimeException("Agendamento não encontrado");
+            throw new RuntimeException("Agendamento não encontrado com ID: " + id + " para cancelamento.");
         }
         agendamentoRepository.deleteById(id);
     }
 
-    // Método para desassociar agendamentos de um usuário pelo ID do usuário
+    // Método para desassociar/excluir agendamentos de um usuário pelo ID do usuário
+    // Adicionado Transactional
+    @Transactional
     public void desassociarAgendamentosPorUsuarioId(Long usuarioId) {
-        // Primeiro, busque os agendamentos relacionados ao cliente
         List<Agendamento> agendamentosComoCliente = agendamentoRepository.findByClienteId(usuarioId);
-        for (Agendamento agendamento : agendamentosComoCliente) {
-            agendamentoRepository.delete(agendamento); // Exclui ou desassocia
+        if (!agendamentosComoCliente.isEmpty()) {
+            agendamentoRepository.deleteAll(agendamentosComoCliente);
         }
 
-        // Depois, busque os agendamentos relacionados ao funcionário
         List<Agendamento> agendamentosComoFuncionario = agendamentoRepository.findByFuncionarioId(usuarioId);
-        for (Agendamento agendamento : agendamentosComoFuncionario) {
-            agendamentoRepository.delete(agendamento); // Exclui ou desassocia
+        if (!agendamentosComoFuncionario.isEmpty()) {
+            agendamentoRepository.deleteAll(agendamentosComoFuncionario);
         }
     }
 
+    // Busca histórico (entidades)
     public List<Agendamento> getHistoricoByFuncionarioId(Long funcionarioId) {
         return agendamentoRepository.findHistoricoByFuncionarioId(funcionarioId);
     }
 
+    // Busca todos os agendamentos (entidades)
     public List<Agendamento> buscarTodosAgendamentos() {
         return agendamentoRepository.findAll();
     }
 
-    public boolean existeConflito(LocalDateTime inicioNovo, Long funcionarioId, Long servicoId) {
-        Servico servicoNovo = servicoService.buscarPorId(servicoId);
-        int duracao = servicoNovo.getDuracao_minutos();
+    // Lógica de conflito ajustada para aceitar um ID de agendamento a ser ignorado (para edições)
+    public boolean existeConflito(LocalDateTime inicioNovo, Long funcionarioId, Long servicoId, Long agendamentoIdEditado) {
+        Servico servicoNovo = servicoRepository.findById(servicoId)
+                .orElseThrow(() -> new RuntimeException("Serviço não encontrado para verificação de conflito com ID: " + servicoId));
+        int duracao = servicoNovo.getDuracao_minutos(); // Supondo que Servico tenha getDuracao_minutos()
         LocalDateTime fimNovo = inicioNovo.plusMinutes(duracao);
 
-        List<Agendamento> agendamentos = agendamentoRepository.findByFuncionarioIdAndData(funcionarioId, inicioNovo.toLocalDate());
+        List<Agendamento> agendamentosDoFuncionarioNoDia = agendamentoRepository.findByFuncionarioIdAndData(funcionarioId, inicioNovo.toLocalDate());
 
-        for (Agendamento ag : agendamentos) {
-            Servico servicoExistente = servicoService.buscarPorId(ag.getServicoId());
-            LocalDateTime inicioExistente = ag.getDataHora();
+        for (Agendamento agExistente : agendamentosDoFuncionarioNoDia) {
+            // Se estamos editando um agendamento, não o compare consigo mesmo
+            if (agendamentoIdEditado != null && agExistente.getId().equals(agendamentoIdEditado)) {
+                continue;
+            }
+
+            Servico servicoExistente = servicoRepository.findById(agExistente.getServicoId())
+                    .orElseThrow(() -> new RuntimeException("Serviço existente não encontrado com ID: " + agExistente.getServicoId()));
+            LocalDateTime inicioExistente = agExistente.getDataHora();
             LocalDateTime fimExistente = inicioExistente.plusMinutes(servicoExistente.getDuracao_minutos());
 
-            boolean sobrepoe = !(fimNovo.isBefore(inicioExistente) || inicioNovo.isAfter(fimExistente));
-            if (sobrepoe) {
-                return true;
+            // Verifica sobreposição
+            // (StartA < EndB) and (EndA > StartB)
+            if (inicioNovo.isBefore(fimExistente) && fimNovo.isAfter(inicioExistente)) {
+                return true; // Conflito encontrado
             }
         }
-        return false;
+        return false; // Nenhum conflito
     }
 
-    public Agendamento salvarAgendamento(Agendamento agendamento) {
-        if (existeConflito(agendamento.getDataHora(), agendamento.getFuncionarioId(), agendamento.getServicoId())) {
-            throw new RuntimeException("Conflito de horário: já existe um agendamento com esse funcionário nesse horário.");
+
+    // Retorna apenas os horários (strings) ocupados para um funcionário em uma data
+    public List<String> buscarHorariosOcupados(String data, Long funcionarioId) {
+        LocalDate dataFormatada = LocalDate.parse(data); // Assume formato YYYY-MM-DD
+        List<Agendamento> agendamentos = agendamentoRepository.findByFuncionarioIdAndData(funcionarioId, dataFormatada);
+        return agendamentos.stream()
+                .map(agendamento -> agendamento.getDataHora().toLocalTime().toString()) // Formato HH:MM ou HH:MM:SS
+                .collect(Collectors.toList());
+    }
+
+    // Busca agendamentos por funcionário e status, retornando DTO com IDs
+    public List<AgendamentoDTO> buscarAgendamentosPorFuncionarioEStatus(Long funcionarioId, String status) {
+        // Valida o funcionário primeiro
+        Usuario funcionario = usuarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com ID: " + funcionarioId));
+        if (!"FUNCIONARIO".equalsIgnoreCase(funcionario.getTipoDeUsuario())) {
+            throw new RuntimeException("Usuário com ID " + funcionarioId + " não é um funcionário válido.");
         }
 
-        return agendamentoRepository.save(agendamento);
+        List<Agendamento> agendamentos = agendamentoRepository.findByFuncionarioIdAndStatus(funcionarioId, status.toUpperCase(Locale.ROOT));
+
+        return agendamentos.stream().map(agendamento -> {
+            Usuario cliente = usuarioRepository.findById(agendamento.getClienteId())
+                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + agendamento.getClienteId() + " para o agendamento ID: " + agendamento.getId()));
+            Servico servico = servicoRepository.findById(agendamento.getServicoId())
+                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + agendamento.getServicoId() + " para o agendamento ID: " + agendamento.getId()));
+
+            return new AgendamentoDTO(
+                    agendamento.getId(),
+                    agendamento.getDataHora(),
+                    cliente.getNome(),
+                    agendamento.getClienteId(),
+                    funcionario.getNome(), // Nome do funcionário já buscado
+                    agendamento.getFuncionarioId(),
+                    servico.getNome(),
+                    agendamento.getServicoId(),
+                    agendamento.getDescricao(),
+                    agendamento.getStatus(),
+                    servico != null ? servico.getPreco() : 0.0
+
+            );
+        }).collect(Collectors.toList());
     }
 
-    public List<String> buscarHorariosOcupados(String data, Long funcionarioId) {
-        LocalDate dataFormatada = LocalDate.parse(data);
+    // Busca agendamentos por funcionário e data específica, retornando DTO com IDs
+    public List<AgendamentoDTO> buscarPorFuncionarioEData(Long funcionarioId, LocalDate data) {
+        // Valida o funcionário
+        Usuario funcionario = usuarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com ID: " + funcionarioId));
+        if (!"FUNCIONARIO".equalsIgnoreCase(funcionario.getTipoDeUsuario())) {
+            throw new RuntimeException("Usuário com ID " + funcionarioId + " não é um funcionário válido.");
+        }
 
-        List<Agendamento> agendamentos = agendamentoRepository
-                .findByFuncionarioIdAndData(funcionarioId, dataFormatada);
+        LocalDateTime inicioDoDia = data.atStartOfDay();
+        LocalDateTime fimDoDia = data.atTime(23, 59, 59, 999999999); // Inclui até o último nanossegundo do dia
 
-        return agendamentos.stream()
-                .map(agendamento -> agendamento.getDataHora().toLocalTime().toString())
-                .collect(Collectors.toList());
+        List<Agendamento> agendamentos = agendamentoRepository.findByFuncionarioIdAndDataHoraBetween(
+                funcionarioId,
+                inicioDoDia,
+                fimDoDia
+        );
+
+        return agendamentos.stream().map(agendamento -> {
+            Usuario cliente = usuarioRepository.findById(agendamento.getClienteId())
+                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + agendamento.getClienteId() + " para o agendamento ID: " + agendamento.getId()));
+            Servico servico = servicoRepository.findById(agendamento.getServicoId())
+                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + agendamento.getServicoId() + " para o agendamento ID: " + agendamento.getId()));
+
+            return new AgendamentoDTO(
+                    agendamento.getId(),
+                    agendamento.getDataHora(),
+                    cliente.getNome(),
+                    agendamento.getClienteId(),
+                    funcionario.getNome(), // Nome do funcionário já buscado
+                    agendamento.getFuncionarioId(),
+                    servico.getNome(),
+                    agendamento.getServicoId(),
+                    agendamento.getDescricao(),
+                    agendamento.getStatus(),
+                    servico != null ? servico.getPreco() : 0.0
+            );
+        }).collect(Collectors.toList());
     }
 
+    // MÉTODO PRINCIPAL A SER CORRIGIDO PARA A TELA DE RECEPÇÃO
+    // Lista agendamentos por status (ex: PENDENTE) e retorna DTOs com IDs e nomes.
+    public List<AgendamentoDTO> listarAgendamentosPorStatusComNomes(String status) {
+        List<Agendamento> agendamentos = agendamentoRepository.findByStatusOrderByDataHoraAsc(status.toUpperCase(Locale.ROOT));
 
-    public List<AgendamentoDTO> buscarAgendamentosPorFuncionarioEStatus(Long funcionarioId, String status) {
-        // Reaproveita o método já existente
-        return buscarAgendamentosPorFuncionario(funcionarioId).stream()
-                .filter(dto -> dto.getStatus().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
+        return agendamentos.stream().map(agendamento -> {
+            // Os IDs já estão no objeto 'agendamento' da entidade.
+            // Buscamos os nomes para popular o DTO.
+            Usuario cliente = usuarioRepository.findById(agendamento.getClienteId())
+                    .orElse(null); // Permite cliente nulo, mas idealmente deveria existir
+
+            Usuario funcionario = usuarioRepository.findById(agendamento.getFuncionarioId())
+                    .orElse(null); // Permite funcionário nulo
+
+            Servico servico = servicoRepository.findById(agendamento.getServicoId())
+                    .orElse(null); // Permite serviço nulo
+
+            // Usa o construtor do AgendamentoDTO que inclui os IDs
+            return new AgendamentoDTO(
+                    agendamento.getId(),
+                    agendamento.getDataHora(),
+                    cliente != null ? cliente.getNome() : "Cliente não encontrado/definido",
+                    agendamento.getClienteId(), // ID DO CLIENTE
+                    funcionario != null ? funcionario.getNome() : "Funcionário não encontrado/definido",
+                    agendamento.getFuncionarioId(), // ID DO FUNCIONÁRIO
+                    servico != null ? servico.getNome() : "Serviço não encontrado/definido",
+                    agendamento.getServicoId(), // ID DO SERVIÇO
+                    agendamento.getDescricao(),
+                    agendamento.getStatus(),
+                    servico != null ? servico.getPreco() : 0.0
+            );
+        }).collect(Collectors.toList());
     }
-
-
 }
